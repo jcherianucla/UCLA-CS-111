@@ -1,0 +1,105 @@
+Name: Jahan Kuruvilla Cherian
+UID: 104436427
+Email: jcherian@ucla.edu
+TA: Tuan Le
+Professor: Mark Kampe
+
+Answers to questions:
+
+2B.1A: Explain the variation in time per operation vs the number of iterations?
+
+We notice that to begin with, the cost per operation decreases to around the 200
+iterations mark. A possible explanation is that to begin with the overhead in creating the
+single thread from the main thread foreshadows the cost per operation on the linked list.
+However as the number of iterations increases, because we are using a single thread, and the operations
+are linear - O(n) - the overall time per operation increases because we are now iterating through a 
+larger doubly linked list.
+
+2B.1B: How would you propose to correct for this effect?
+
+To correct for the intial spike and drop, we could essentially not create another thread and instead run the
+operations within the main thread itself so that we avoid this initial overhead of thread creation. However the problem
+of an exponential increase still persists, and this is simply due to the linear nature of a linked list.
+Unfortunately a single, double linked list is not optimizable through multi-threading for this particular reason, and
+so instead we could try to use multiple linked lists arranged in buckets - Hash Table - if we wish to decrease this
+exponential growth factor for the cost per operation against the number of iterations.
+
+2B.2A:Compare the variation in time per protected operation vs the number of 
+threads in Project 2B and in Project 2A.  Explain the difference.
+
+We notice four distinctive differences in the time variation between the projects.
+1.) The critical section for the Linked List is much larger than that for the addition form 2A. We notice
+that multiple functions in the Linked List have critical points, amassing to a larger critical section which
+requires a coarser lock which slows the operations down on the linked list in comparison to the addition.
+2.) The lock is held for much longer in the Linked List than it was for the addition function. Because the critical
+sections are larger, there are more instructions to run through per thread which means the locks are held for a longer
+period of time and for more functions as well.
+3.) The probability of conflicting threads is much higher in the Linked List for the same number of threads. As mentioned
+before the critical sections and the number of them are higher in the linked list which means the chances of preemption are
+a lot higher for the Linked List and so there is more resource contention between the threads than that in the simple addition
+function from 2A.
+4.) Linking from the previous parts we see that there are more conflicts between the threads which means there are a greater
+number of blocked threads which results in greater overheads which results in effectively less parallelism. This is why Linked
+Lists are not particularly the greatest data structures to multi-thread.
+
+
+-------------------------------------------------------------------------------
+SortedList.h:
+	This is the header file for the doubly linked list, defining the interface
+	of this linked list. Basing off the fact that there exists a list (head) node
+	that acts as a dummy, my implementation is a circular doubly linked list.
+
+SortedList.c:
+	This is the C source code that is the implementation of the given interface.
+	This implements four functions that are insert - puts a new node in ascending
+	order; delete - deletes a node by detaching it from the list; lookup - looks
+	for a node with relevant key value; length - returns the length of the list.
+	These functions have the check for the opt_yield and different YIELD macros
+	around the critical sections for yielding ability.
+	For insert we place the yield after we find our location for the new node,
+	because if we imagine a context switch happening at this point, we realise the
+	ordering of insertion could be messed up.
+	For delete the yield is placed right before updating the previous and next pointers.
+	For lookup the yield is before we move forward in our search - this is the same
+	for the length function - so that we make sure to always correctly follow the
+	same path in case of a context switch.
+
+lab2b.c:
+	This is the C source code that runs the insert, delete, lookup and length
+	functions on a SortedList 'object'. The code supports options to enable
+	locking and yielding with variation in number of threads and iterations. This
+	allows us to see how performance is affected on a concurrent doubly linked
+	linked list with multiple threads, and how race conditions come into play when
+	running these operations. The result outputs several incorrect non-zero lengths
+	of the list because of this reason. This supports the following options:
+	--threads=num_threads - allows you to specify the number of threads to run. Required argument, and if not added, defaults
+						    to 1.
+	--iterations=num_iterations - allows to specify the number of iterations to run. Required argument, and if not added,
+								  defaults to 1.
+	--yield=ids - Allows for threads to yield during the insert, delete or search
+	(lookup and length). Requires at least one specified option for yielding if used.
+	--sync=m or s - allows you to specify a locking/safe updating mechanism. Required argument, and if not added as 
+						 correct options, will throw an error.
+
+Makefile:
+	Supports the creation of the program for execution. The following targets are defined:
+	default: Uses gcc with the -pthread and -lrt (for clock timing) to compile the executable with debugging available.
+	clean: Removes all files (only the executable) generated in the build process.
+	dist: Creates a tarball of 7 files for submission - SortedList.h,
+		  SortedList.c, lab2b.c, Makefile, README, graph1.png, graph2.png
+
+README:
+	Contains the answers to questions asked by the specification, and information about the other files in the submission.
+
+graph1.png:
+	This is the graph of the average cost per operation in nanoseconds against the number of iterations for 1 thread
+	without any locking. We notice an interesting curved relation, with the
+	cost decreasing unto a certain value and then increasing past this point. The reason for such an
+	interesting trend is explained in the first answer.
+
+graph2.png:
+	This is the graph of the average cost per operation in nanoseconds against the number of threads with 2 different
+	locking mechanisms and no locking mechanism. The trend that is noticed is that spin lock is the slowest - probably
+	because of the spinning and wasting of CPU cycles, and possibly due to cache coherance problems with the switches
+	between multiple processors. The mutex is slower than unprotected because of the overhead in the creation of the
+	lock.
