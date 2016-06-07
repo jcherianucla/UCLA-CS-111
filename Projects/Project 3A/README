@@ -1,0 +1,30 @@
+Name: Omar Ozgur
+ID: 704465898
+Class: CS111
+Lab Section: 1C
+Project: 3a
+
+Partner Name: Jahan Cherian
+Partnes UID: 104436427
+Partners Email: jcherian@ucla.edu
+
+*** README ***
+
+File Information:
+
+	README: This file gives information about the files that are included in the project, as 
+	well as information regarding features and methods of testing.
+
+	Makefile: This is the makefile that was created to automate useful tasks. The "make" 
+	command causes the default target to be executed, which builds the executable program 
+	"lab3a". "make clean" can be used to remove files created by the build process. 
+	"make dist" can be used to create a distributable tarball containing the files "README", 
+	"Makefile", and "lab3a.c".
+
+	lab3a.c: This "C" file can be compiled with the "make" command to create an executable
+	program called "lab3a" that will analyze certain components of an ext2 file system. It
+	does so by using 6 distinct functions to parse the super block, group descriptors, free
+	bitmap entries, inodes, directory entries, and indirect blocks of the disk image that
+	is provided as the only argument to the program. The specific properties that are
+	extracted are saved in the 6 files "super.csv", "group.csv", "bitmap.csv", "inode.csv",
+	"directory.csv", and "indirect.csv" respectively.

@@ -1,0 +1,65 @@
+Name: Jahan Kuruvilla Cherian
+Email: jcherian@ucla.edu
+UID: 104436427
+TA: Teun
+Prof: Kampe
+
+lab0.c:
+lab0.c contains my source code for the program. The program uses the getopt-long
+API to create the specified options and then is used to check for the cases of
+the options. Following the spec the program reads and writes to the specified
+sources, which by default are STDIN and STDOUT unless the --input and --output
+options are used to state otherwise. This reading is done byte by byte, which
+is inefficient in that it makes a large number of syscalls (using an unbuffered
+way of doing so), but allows for input files to be irregular (changing in size etc).
+The code performs a segmentation fault (only if specified) by dereferencing a null
+pointer that in my code is called 'n'. It does this before the program reads and writes 
+so that it makes the program go through the segmentation fault before doing anything
+important. The catch argument (which can only be used if the --segfault
+option is used) will use the signal API to catch the SIGSEGV signal and output my
+corresponding message followed by an exit(3).
+Note some other personal choices made in the code, include a default usage message
+to be printed if any unknown option is used, and an exit with EXIT_FAILURE.
+
+Makefile:
+Makefile contains all the respective targets as specified by the specification.
+  default:
+Default simply builds the executable lab0  using gcc with the -g option to allow
+for debugging.
+  dist:
+The dist target will make a tarball of all the necessary files, and will print out
+a error message notifying the user if a file is not in the folder (but will still 
+make the tarball with the other files); i.e. if the folder does not contian the 
+screenshots, then it will still tar the C file, Makefile and README but print an
+error saying that the target is missing the screenshots.
+  check:
+The Makefile also contains about 5 test cases that use bash like syntax to check
+if the program exits with the correct exit codes based on the options used, and
+a check to see if the input and output files have the same content based on the 
+cmp command. Note that I do not have an explicit segmentation fault test because
+the catch test should account for a successful segmentation fault! These tests
+are general enough to test the basic functionality of the program against all the
+requirements in the specification. In these tests, if any condition fails, it
+prints an error message to a file called logfile.txt. Then when we run make check,
+it checks if logfile.txt exists. If it does, then we have failed test cases and so
+the program will print the list of errors (using cat) from the logfile. Otherwise it
+will print that all tests succeeded.
+  clean:
+The clean target will remove the executable, tarball, and any intermediary file made
+through the make process, i.e. it will remove any .txt files as well.
+
+README:
+The README contains information about the project and my experience through it.
+
+backtrace.png:
+backtrace.png is the screenshot showing the backtrace of the segmentation fault
+in gdb. Note that the backtrace only contains one function call frame because
+the program breaks in the main method which at the time of seg-faulting is the
+only function on the stack.
+
+nullptr.png:
+nullptr.png is the screenshot confirming the null pointer as truly being NULL.
+We do this by breaking at line 110, and then running the program with --segfault.
+'n' is our null pointer variable, and so we print n and print n[0] to see that
+n is located at 0x0 (null pointer address) and n[0] reports that memory cannot be
+accessed from there also confirming it is a null pointer.

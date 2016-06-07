@@ -1,0 +1,329 @@
+Name: Jahan Kuruvilla Cherian
+UID: 104436427
+Email: jcherian@ucla.edu
+TA: Tuan Le
+Professor: Mark Kampe
+
+Answers to questions:
+
+2C.1A: Explain the change in performance of the synchronized methods as a function of the number of threads per list.
+
+We notice that as the number of threads per list increases, so does the overall average time per operation.
+The main reasoning behind this would be because there are now fewer lists and there are thus more conflicts
+as more threads contend for the same resource. Thus there is the need for longer locking to prevent race
+conditions and so each thread will hold the list for a longer period of time as more threads will be on the waiting 
+queue. This results in longer times.
+
+2C.1B: Explain why threads per list is a more interesting number than threads (for this particular measurement).
+
+This metric is more useful to us because it gives us a better notion of contention and we notice that as the 
+ratio increases - that is there are more threads and fewer lists - the contention for resources such as memory
+increases since there is a smaller chance for parallelization. The locking is effectively coarser in the sense
+that the lists are bigger as the ratio increases and so the time involved is longer. Thus as this metric shows
+us that contention increases with an increase in the ratio, we see that contention has a positive correlation
+with more time spent in each operation.
+
+2C.2A: Compare the time per operation when increasing the lists value. Explain your observations.
+
+We notice that when we increase the number of lists, our locking becomes finer as we have more lists
+and each list is effectively made smaller. This thus results in fewer conflicts and so the time spent
+per operation is less. This makes intuitive sense because we have fewer threads competing for the same
+resource and thus the waiting time for each thread per list decreases as less time is spent in the critical
+section as the list size is much smaller because the data is distributed amongst more lists and threads.
+
+2C.2B: Compare the time per operation between mutex and spinlock. Explain your observations.
+
+We notice that the time per operation for both types of locks stay around the same but as the ratio
+of threads to lists increases spin lock seems to do a better job. The reason for this is possibly because
+in Linux mutexes are implemented under the ideology of futexes which have some overhead
+in the few system calls made to put a thread to sleep, while for relatively for small number of operations
+spin-locks can work effectively.
+
+2C.3A: Why must the mutex be held when pthread_cond_wait is called?
+
+pthread_cond_wait works on the principle of checking the condition variables value continuously
+in a while loop. This evaluates to being a critical section and thus is liable to preemption. That is
+if the mutex was not held then if preemption occurs before a check of the condition variable, another thread
+could change this value and as a result the root thread would try waking up no thread and will then fall asleep
+resulting in a wakeup race - Infinite sleep. This is why we must lock this section before calling pthread_cond_wait.
+
+2C.3B: Why must the mutex be released when the waiting thread is blocked?
+
+If the mutex is not released when the waiting thread is blocked we would result in Deadlock. Imagine the
+situation where a child tries to acquire a lock, but cannot do so because the parent thread is currently 
+holding it in its blocked state, but will never wakeup because the child cannot acquire the lock and so
+both processes end up in this blocked circular dependency resulting in Deadlock.
+
+2C.3C: Why must the mutex be reacquired when the calling thread resumes?
+
+Recall that the pthread_cond_wait runs continuously in a while loop, checking the value of the
+condition variable. Thus the calling thread resumes execution in a critical section and thus if the
+mutex is not reacquired and there is a preemption within this critical section then we could change
+the value of the condition variable and result in aother wakeup race where the thread remains in
+a state of infinite sleep. Because the resume point is within a critical section we
+must execute the code exclusively thus the need for mutex arises.
+
+2C.3D: Why must mutex release be done inside of pthread_cond_wait?  Why can't the caller simply release the mutex before calling pthread_cond_wait?
+
+If it was up to the user we have two avenues of issues. The most naive issue is that the user could completely forget to
+release the lock which would result in deadlock which would be dangerous. The even more dangerous situation would be that
+releasing the mutex before the call to cond_wait opens up doors to preemption due to it being a critical section 
+which could result in a change to the condition variable and thus result in a wakeup race - infinite sleep.
+
+2C.3E: Can pthread_cond_wait be implemented in user mode?  If so, how?  If it can only be implemented by a system call, explain why?
+
+Note that pthread_cond_wait can be thought of as two instructions - release the mutex and put the thread to sleep. Implementing
+this in user mode opens up the possibility of preemption within this code. This code needs to be a completely atomic instruction
+and the only way we can ensure this is to implement it in kernel/supervisor mode.
+
+-------------------------------------------------------------------------------
+
+Performance Analysis with GPROF:
+
+Case 1:
+	Unprotected with 1 list, 1 thread and a range of iterations:
+	
+	We see that most of the time is spent in between the insertion and lookup
+functions because we have to iterate through the long list each time around. This
+becomes more expensive as we increase the number of iterations because the 
+number of elements thus increases and we essentially go through a longer list
+which thus increases with linear time. The number of calls is consistently
+equal to the number of iterations as this corresponds to the number of elements
+for 1 thread.
+
+5k iterations:
+Each sample counts as 0.01 seconds.
+  %   cumulative   self              self     total
+ time   seconds   seconds    calls  us/call  us/call  name
+ 60.09      0.03     0.03     5000     6.01     6.01  SortedList_insert
+ 40.06      0.05     0.02     5000     4.01     4.01  SortedList_lookup
+  0.00      0.05     0.00     5000     0.00     0.00  SortedList_delete
+  0.00      0.05     0.00     5000     0.00     0.00  hash_function
+  0.00      0.05     0.00        2     0.00     0.00  SortedList_length
+  0.00      0.05     0.00        1     0.00     0.00  generate_keys
+  0.00      0.05     0.00        1     0.00     0.00  initialize_lists
+  0.00      0.05     0.00        1     0.00     0.00  initialize_locks
+
+10k iterations:
+Each sample counts as 0.01 seconds.
+  %   cumulative   self              self     total
+ time   seconds   seconds    calls  us/call  us/call  name
+ 58.42      0.07     0.07    10000     7.01     7.01  SortedList_lookup
+ 41.73      0.12     0.05    10000     5.01     5.01  SortedList_insert
+  0.00      0.12     0.00    10000     0.00     0.00  SortedList_delete
+  0.00      0.12     0.00    10000     0.00     0.00  hash_function
+  0.00      0.12     0.00        2     0.00     0.00  SortedList_length
+  0.00      0.12     0.00        1     0.00     0.00  generate_keys
+  0.00      0.12     0.00        1     0.00     0.00  initialize_lists
+  0.00      0.12     0.00        1     0.00     0.00  initialize_locks
+
+25k iterations:
+Each sample counts as 0.01 seconds.
+  %   cumulative   self              self     total
+ time   seconds   seconds    calls  us/call  us/call  name
+ 55.03      0.50     0.50    25000    20.03    20.03  SortedList_insert
+ 45.12      0.91     0.41    25000    16.42    16.42  SortedList_lookup
+  0.00      0.91     0.00    25000     0.00     0.00  SortedList_delete
+  0.00      0.91     0.00    25000     0.00     0.00  hash_function
+  0.00      0.91     0.00        2     0.00     0.00  SortedList_length
+  0.00      0.91     0.00        1     0.00     0.00  generate_keys
+  0.00      0.91     0.00        1     0.00     0.00  initialize_lists
+  0.00      0.91     0.00        1     0.00     0.00  initialize_locks
+
+50k iterations:
+Each sample counts as 0.01 seconds.
+  %   cumulative   self              self     total
+ time   seconds   seconds    calls  ms/call  ms/call  name
+ 51.44      1.32     1.32    50000     0.03     0.03  SortedList_lookup
+ 47.54      2.54     1.22    50000     0.02     0.02  SortedList_insert
+  0.78      2.56     0.02                             thread_list
+  0.39      2.57     0.01        2     5.01     5.01  SortedList_length
+  0.00      2.57     0.00    50000     0.00     0.00  SortedList_delete
+  0.00      2.57     0.00    50000     0.00     0.00  hash_function
+  0.00      2.57     0.00        1     0.00     0.00  generate_keys
+  0.00      2.57     0.00        1     0.00     0.00  initialize_lists
+  0.00      2.57     0.00        1     0.00     0.00  initialize_locks
+
+100k iterations
+Each sample counts as 0.01 seconds.
+  %   cumulative   self              self     total
+ time   seconds   seconds    calls  ms/call  ms/call  name
+ 51.54      7.06     7.06   100000     0.07     0.07  SortedList_insert
+ 48.39     13.69     6.63   100000     0.07     0.07  SortedList_lookup
+  0.07     13.70     0.01   100000     0.00     0.00  hash_function
+  0.07     13.71     0.01        2     5.01     5.01  SortedList_length
+  0.07     13.72     0.01        1    10.02    10.02  generate_keys
+  0.00     13.72     0.00   100000     0.00     0.00  SortedList_delete
+  0.00     13.72     0.00        1     0.00     0.00  initialize_lists
+  0.00     13.72     0.00        1     0.00     0.00  initialize_locks
+
+Case 2:
+	Mutex locked with 8 threads and 10000 iterations:
+
+	As the number of lists increases we see that the time spent varies.
+With just 1 list we have similar results to that of a single threaded version from
+case 1 in that most of the time is spent in the lookup and insert. However as we
+increase the number of lists we spend more time in the hash functions and length and
+delete functions. Finally as we hit a certain point we seemingly spend all time in
+the function that is run by threads. This trend is because of continually fine
+grained locking as the lists get smaller and so we have to iterate through smaller
+lists and so we dont spend as much time in the individual lookup and insert functions
+but rather the time distribution evens out until we spend the time in the thread function.
+
+1 list:
+Each sample counts as 0.01 seconds.
+  %   cumulative   self              self     total
+ time   seconds   seconds    calls  us/call  us/call  name
+ 52.15      3.27     3.27    80000    40.94    40.94  SortedList_lookup
+ 47.68      6.27     2.99    80000    37.43    37.43  SortedList_insert
+  0.16      6.28     0.01                             main
+  0.16      6.29     0.01                             thread_list
+  0.00      6.29     0.00    80000     0.00     0.00  SortedList_delete
+  0.00      6.29     0.00    80000     0.00     0.00  hash_function
+  0.00      6.29     0.00        2     0.00     0.00  SortedList_length
+  0.00      6.29     0.00        1     0.00     0.00  generate_keys
+  0.00      6.29     0.00        1     0.00     0.00  initialize_lists
+  0.00      6.29     0.00        1     0.00     0.00  initialize_locks
+
+1k lists:
+Each sample counts as 0.01 seconds.
+  %   cumulative   self              self     total
+ time   seconds   seconds    calls  us/call  us/call  name
+ 50.08      0.04     0.04    29485     1.36     1.36  SortedList_insert
+ 25.04      0.06     0.02    16072     1.25     1.25  SortedList_lookup
+ 12.52      0.07     0.01    80000     0.13     0.13  hash_function
+ 12.52      0.08     0.01     1605     6.24     6.24  SortedList_length
+  0.00      0.08     0.00    18011     0.00     0.00  SortedList_delete
+  0.00      0.08     0.00        1     0.00     0.00  generate_keys
+  0.00      0.08     0.00        1     0.00     0.00  initialize_lists
+  0.00      0.08     0.00        1     0.00     0.00  initialize_locks
+
+10k lists:
+Each sample counts as 0.01 seconds.
+  %   cumulative   self              self     total
+ time   seconds   seconds    calls  ns/call  ns/call  name
+100.15      0.01     0.01    80000   125.19   125.19  hash_function
+  0.00      0.01     0.00    11761     0.00     0.00  SortedList_length
+  0.00      0.01     0.00    10921     0.00     0.00  SortedList_insert
+  0.00      0.01     0.00     9251     0.00     0.00  SortedList_delete
+  0.00      0.01     0.00     7539     0.00     0.00  SortedList_lookup
+  0.00      0.01     0.00        1     0.00     0.00  generate_keys
+  0.00      0.01     0.00        1     0.00     0.00  initialize_lists
+  0.00      0.01     0.00        1     0.00     0.00  initialize_locks
+
+Case 3:
+	Spin Lock with 8 threads and 10000 iterations:
+
+	With spin locks we notice that as the number of lists increases and the finer
+grained locking we get the less time we spend wasting CPU time through the spins.
+This is why the results below show that as we increase the number of lists the time
+distribution is focused around more of the functions and not just time being idled
+in the thread_list.
+
+1 list:
+Each sample counts as 0.01 seconds.
+  %   cumulative   self              self     total
+ time   seconds   seconds    calls  ms/call  ms/call  name
+ 99.99    622.48   622.48                             thread_list
+  0.08    622.98     0.49    80000     0.01     0.01  SortedList_lookup
+  0.07    623.44     0.46    79998     0.01     0.01  SortedList_insert
+  0.00    623.45     0.01    80000     0.00     0.00  hash_function
+  0.00    623.46     0.01        1    10.02    10.02  generate_keys
+  0.00    623.46     0.00    80000     0.00     0.00  SortedList_delete
+  0.00    623.46     0.00        2     0.00     0.00  SortedList_length
+  0.00    623.46     0.00        1     0.00     0.00  initialize_lists
+  0.00    623.46     0.00        1     0.00     0.00  initialize_locks
+
+1k lists:
+Each sample counts as 0.01 seconds.
+  %   cumulative   self              self     total
+ time   seconds   seconds    calls  us/call  us/call  name
+ 30.05      0.03     0.03    28761     1.04     1.04  SortedList_insert
+ 30.05      0.06     0.03    15988     1.88     1.88  SortedList_lookup
+ 10.02      0.07     0.01    80000     0.13     0.13  hash_function
+ 10.02      0.08     0.01    17993     0.56     0.56  SortedList_delete
+ 10.02      0.09     0.01     1553     6.45     6.45  SortedList_length
+ 10.02      0.10     0.01                             thread_list
+  0.00      0.10     0.00        1     0.00     0.00  generate_keys
+  0.00      0.10     0.00        1     0.00     0.00  initialize_lists
+  0.00      0.10     0.00        1     0.00     0.00  initialize_locks
+
+10k lists:
+Each sample counts as 0.01 seconds.
+  %   cumulative   self              self     total
+ time   seconds   seconds    calls  ms/call  ms/call  name
+ 41.73      0.05     0.05                             thread_list
+ 25.04      0.08     0.03     7701     0.00     0.00  SortedList_lookup
+ 16.69      0.10     0.02     9618     0.00     0.00  SortedList_insert
+  8.35      0.11     0.01    80000     0.00     0.00  hash_function
+  8.35      0.12     0.01        1    10.02    10.02  generate_keys
+  0.00      0.12     0.00    11385     0.00     0.00  SortedList_length
+  0.00      0.12     0.00     9689     0.00     0.00  SortedList_delete
+  0.00      0.12     0.00        1     0.00     0.00  initialize_lists
+  0.00      0.12     0.00        1     0.00     0.00  initialize_locks
+
+-------------------------------------------------------------------------------------
+
+SortedList.h:
+	This is the header file for the doubly linked list, defining the interface
+	of this linked list. Basing off the fact that there exists a list (head) node
+	that acts as a dummy, my implementation is a circular doubly linked list.
+
+SortedList.c:
+	This is the C source code that is the implementation of the given interface.
+	This implements four functions that are insert - puts a new node in ascending
+	order; delete - deletes a node by detaching it from the list; lookup - looks
+	for a node with relevant key value; length - returns the length of the list.
+	These functions have the check for the opt_yield and different YIELD macros
+	around the critical sections for yielding ability.
+	For insert we place the yield after we find our location for the new node,
+	because if we imagine a context switch happening at this point, we realise the
+	ordering of insertion could be messed up.
+	For delete the yield is placed right before updating the previous and next pointers.
+	For lookup the yield is before we move forward in our search - this is the same
+	for the length function - so that we make sure to always correctly follow the
+	same path in case of a context switch.
+
+lab2c.c:
+	This is the C source code that runs the insert, delete, lookup and length
+	functions on a SortedList 'object'. The code supports options to enable
+	locking and yielding with variation in number of threads and iterations. This
+	allows us to see how performance is affected on concurrent doubly linked
+	linked lists with multiple threads, and how race conditions come into play when
+	running these operations. The additional feature includes the ability
+	to split the list into sub lists, acting like a concurrent hash table rather than
+	a linked list. This allows for finer granularity in the locking. If used without
+	any locking mechanisms we still get an incorrect list length as before.
+	This supports the following options:
+	--threads=num_threads - allows you to specify the number of threads to run. Required argument, and if not added, defaults
+						    to 1.
+	--iterations=num_iterations - allows to specify the number of iterations to run. Required argument, and if not added,
+								  defaults to 1.
+	--yield=ids - Allows for threads to yield during the insert, delete or search
+	(lookup and length). Requires at least one specified option for yielding if used.
+	--sync=m or s - allows you to specify a locking/safe updating mechanism. Required argument, and if not added as 
+						 correct options, will throw an error.
+	--lists=num_lists - allows you to specify the number of lists to break the large list into. This involves having
+						to create separate locks per list and having to lock the length calculations. We use
+						a prime number hashing technique to hash into the lists array based on the key. The default is
+						set to 1, and this is a required argument.
+
+Makefile:
+	Supports the creation of the program for execution. The following targets are defined:
+	default: Uses gcc with the -pthread and -lrt (for clock timing) to compile the executable
+			 with -pg to support debugging and profiling with gprof.
+	clean: Removes all files (only the executable) generated in the build process.
+	dist: Creates a tarball of 6 files for submission - SortedList.h,
+		  SortedList.c, lab2c.c, Makefile, README, graph1.png.
+
+README:
+	Contains the answers to questions asked by the specification, and information about the other files in the submission.
+
+graph1.png:
+	This graph represents the corrected average time per operation in nanoseconds by 
+	accounting for variable list sizes by dividing by a variable factor proportional to the
+	number of elements by the number of lists. This is plotted against a ratio of threads to 
+	lists to represent the amount of resource contention. Note that for the unprotected
+	version we only run 1 thread and only upto a list size of 1 because otherwise with more
+	threads we get errors and thus gives us an incorrect representation of time. Note that we
+	notice the spin lock is slightly better probably because of the finer grained locking.
