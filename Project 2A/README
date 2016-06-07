@@ -1,0 +1,108 @@
+Name: Jahan Kuruvilla Cherian
+UID: 104436427
+Email: jcherian@ucla.edu
+TA: Tuan Le
+Professor: Mark Kampe
+
+Answers to questions:
+
+2A.1A: Why does it take this many threads or iterations to result in failure?
+
+Running a consistent set of tests for iterations running from 10 - 10000 (increments of powers of 10)
+with thread count variation from 1 - 32 (increments of powers of 2) I noticed that 1 thread never fails
+and consistent failure with the other threads around 1000 iterations. It is noticeable that the higher 
+number of threads also fail more often with fewer threads. The reason this happens is because as the number of
+threads increases the chances of collisions within the critical section (race conditions). The same can be said
+for the number of iterations. That is failure is directly proportional to the number of race conditions/collisions
+which is directly proportional to the number of threads and iterations.
+
+2A.1B: Why does a significantly smaller number of iterations seldom fail?
+
+The answer builds of 1A, because as we mentioned the number of iterations control how many times the threads
+execute the critical section and so with an increase in number of iterations, there is a higher probability
+of race conditions with the threads and so a higher chance of failure. Thus with fewer iterations the threads are
+competing for the critical section at a lower rate. That is the critical section is not run as often and so the
+chances of failuire decreases.
+
+2A.2A: Why does the average cost per operation drop with increasing iterations?
+
+When calculating the average cost per operation we take into account the time to create the threads by the number of
+operations along with the time taken for the adding. That is we can say
+the average cost per operation is approximately = overhead in thread creation/iterations + time_adding. Thread
+creation is an expensive operation. As the number of iterations increases we see that this overhead time decreases as
+it is inversely proportional to the number of iterations and thus the average cost per operation drops.
+
+2A.2B: How do we know what the "correct" cost is?
+
+If we can extend the number of iterations to infinity we see we approach the average cost per operation converges
+simply to the time taken for the addition and remains at that. This is the "correct" cost per operation,
+ignoring the thread creation overhead.
+
+2A.2C: Why are the --yield runs so much slower?  Where is the extra time going?
+
+Yielding means the threads are interrupted, their states are saved in a TCB and then a context switch occurs
+for the other thread to run the critical section. This results in a lot of overhead time in performing the
+above operations by some sort of preemptive thread scheduler, which is why yielding takes a lot longer.
+The time goes in interruption, saving state of thread, loading the next thread from the waiting queue and then
+running the critical section.
+
+2A.2D: Can we get valid timings if we are using --yield?  How, or why not?
+
+No, because the context switches between threads in yielding is expensive and the consistency of doing so
+essentially means we spend a lot of time in this overhead which then drowns out the actual running time of the
+program, and so the timings are skewed because of all these context switches and not the actual program.
+
+2A.3A: Why do all of the options perform similarly for low numbers of threads?
+
+For low number of threads the set of instructions are almost executed sequentially in the sense that
+because there are such few threads the lock barely needs to make threads wait since given the multi-processors on
+the system, we can assume each thread (for a low number of threads) will get its own CPU and so will not have to wait
+to perform the operations in a critical section, as they would just default to another free CPU. Thus for the sake of
+few threads, the locks basically do nothing (or do very minimal waiting for other threads) and so they all have a similar
+time.
+
+2A.3B: Why do the three protected operations slow down as the number of threads rises?
+
+As the number of threads rise the locking mechanisms all have to find some way of dealing with making other threads
+busy/wait while the critical section is locked or the data is being updated. This thus adds blocking/waiting overhead
+times and thus slows down the operations.
+
+2A.3C: Why are spin-locks so expensive for large numbers of threads?
+
+Spin-locks work by simply making other threads "spin" which involves usage of CPU time and resources.
+Thus the waiting threads are simply going to spin and waste this CPU resource and take more time. As the
+number of the threads exceeds the number of CPU cores available this becomes more prevalent as each thread
+now has to share CPU's and the spinning begins to waste more and more time.
+
+-------------------------------------------------------------------------------
+
+lab2a.c:
+	This is the C source code that runs the adding operation with the options of yielding, specifying
+	threads and iterations and allowing for three different types of atomic instructions/locks through mutexes,
+	testing and setting and comparing and swapping. This allows us to test out the thread efficiency in performing
+	the critical sections with different mechanisms, and see how the number of threads and number of iterations
+	affects this performance. This supports the following options:
+	--threads=num_threads - allows you to specify the number of threads to run. Required argument, and if not added, defaults
+						    to 1.
+	--iterations=num_iterations - allows to specify the number of iterations to run. Required argument, and if not added,
+								  defaults to 1.
+	--yield - Allows for threads to yield during the addition.
+	--sync=m or c or s - allows you to specify a locking/safe updating mechanism. Required argument, and if not added as 
+						 correct options, will throw an error.
+
+Makefile:
+	Supports the creation of the program for execution. The following targets are defined:
+	default: Uses gcc with the -pthread and -lrt (for clock timing) to compile the executable with debugging available.
+	clean: Removes all files (only the executable) generated in the build process.
+	dist: Creates a tarball of 5 files for submission - lab2a.c, Makefile, README, graph1.png, graph2.png
+
+README:
+	Contains the answers to questions asked by the specification, and information about the other files in the submission.
+
+graph1.png:
+	This is the graph of the average cost per operation in nanoseconds against the number of iterations for 1 thread
+	without any locking. We notice a decreasing trend because of the reasons mentioned in 2A.1A.
+
+graph2.png:
+	This is the graph of the average cost per operation in nanoseconds against the number of threads with 3 different
+	locking mechanisms and no locking mechanism. The relevant information of the graph is provided as answers to 2A.3
