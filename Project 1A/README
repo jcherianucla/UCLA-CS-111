@@ -1,0 +1,28 @@
+Name: Jahan Kuruvilla Cherian
+Email: jcherian@ucla.edu
+UID: 104436427
+TA: Tuan Le
+Prof: Mark Kampe
+
+lab1a.c:
+	This files contains my code to run the program. The code is broken up into several
+	modules, all of which cohesively run the program. There were a few global variables
+	used in the program to be freely passed around the code as needed. Such an example
+	is my 'sh_flag' variable that states whether the program runs with the shell
+	instantiated. This is used to differentiate some exit statuses with that of 
+	the program run without the shell command. More information about the code can be
+	found as comments throughout the code.
+
+Makefile:
+	This file contains three esential targets:
+		default: This builds an executable lab1a with the -g and -pthread options 
+				 used with gcc.
+		clean: This removes unnecessary files such as the executable and any tarball.
+			   This is ideal for keeping only the important files that would be used
+			   for making the tarball in the first place.
+		dist: This makes a tarball with the specified naming format with the C source
+			  code, Makefile and README.
+
+README:
+	This file contains a brief description about the contents of each of the files in
+	the tarball submitted.

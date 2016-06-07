@@ -1,0 +1,143 @@
+#!/bin/bash
+
+echo "./lab2a --threads=1 --iterations=10"
+(>&2 echo "./lab2a --threads=1 --iterations=10")
+for i in `seq 1 10`; do
+	./lab2a --threads=1 --iterations=10
+done
+
+echo "./lab2a --threads=1 --iterations=100"
+(>&2 echo "./lab2a --threads=1 --iterations=100")
+for i in `seq 1 10`; do
+	./lab2a --threads=1 --iterations=100
+done
+
+echo "./lab2a --threads=1 --iterations=1000"
+(>&2 echo "./lab2a --threads=1 --iterations=1000")
+for i in `seq 1 10`; do
+	./lab2a --threads=1 --iterations=1000
+done
+
+echo "./lab2a --threads=1 --iterations=10000"
+(>&2 echo "./lab2a --threads=1 --iterations=10000")
+for i in `seq 1 10`; do
+	./lab2a --threads=1 --iterations=10000
+done
+
+echo "./lab2a --threads=2 --iterations=10"
+(>&2 echo "./lab2a --threads=2 --iterations=10")
+for i in `seq 1 10`; do
+	./lab2a --threads=2 --iterations=10
+done
+
+echo "./lab2a --threads=2 --iterations=100"
+(>&2 echo "./lab2a --threads=2 --iterations=100")
+for i in `seq 1 10`; do
+	./lab2a --threads=2 --iterations=100
+done
+
+echo "./lab2a --threads=2 --iterations=1000"
+(>&2 echo "./lab2a --threads=2 --iterations=1000")
+for i in `seq 1 10`; do
+	./lab2a --threads=2 --iterations=1000
+done
+
+echo "./lab2a --threads=2 --iterations=10000"
+(>&2 echo "./lab2a --threads=2 --iterations=10000")
+for i in `seq 1 10`; do
+	./lab2a --threads=2 --iterations=10000
+done
+
+echo "./lab2a --threads=4 --iterations=10"
+(>&2 echo "./lab2a --threads=4 --iterations=10")
+for i in `seq 1 10`; do
+	./lab2a --threads=4 --iterations=10
+done
+
+echo "./lab2a --threads=4 --iterations=100"
+(>&2 echo "./lab2a --threads=4 --iterations=100")
+for i in `seq 1 10`; do
+	./lab2a --threads=4 --iterations=100
+done
+
+echo "./lab2a --threads=4 --iterations=1000"
+(>&2 echo "./lab2a --threads=4 --iterations=1000")
+for i in `seq 1 10`; do
+	./lab2a --threads=4 --iterations=1000
+done
+
+echo "./lab2a --threads=4 --iterations=10000"
+(>&2 echo "./lab2a --threads=4 --iterations=10000")
+for i in `seq 1 10`; do
+	./lab2a --threads=4 --iterations=10000
+done
+
+echo "./lab2a --threads=8 --iterations=10"
+(>&2 echo "./lab2a --threads=8 --iterations=10")
+for i in `seq 1 10`; do
+	./lab2a --threads=8 --iterations=10
+done
+
+echo "./lab2a --threads=8 --iterations=100"
+(>&2 echo "./lab2a --threads=8 --iterations=100")
+for i in `seq 1 10`; do
+	./lab2a --threads=8 --iterations=100
+done
+
+echo "./lab2a --threads=8 --iterations=1000"
+(>&2 echo "./lab2a --threads=8 --iterations=1000")
+for i in `seq 1 10`; do
+	./lab2a --threads=8 --iterations=1000
+done
+
+echo "./lab2a --threads=8 --iterations=10000"
+(>&2 echo "./lab2a --threads=8 --iterations=10000")
+for i in `seq 1 10`; do
+	./lab2a --threads=8 --iterations=10000
+done
+echo "./lab2a --threads=16 --iterations=10"
+(>&2 echo "./lab2a --threads=16 --iterations=10")
+for i in `seq 1 10`; do
+	./lab2a --threads=16 --iterations=10
+done
+
+echo "./lab2a --threads=16 --iterations=100"
+(>&2 echo "./lab2a --threads=16 --iterations=100")
+for i in `seq 1 10`; do
+	./lab2a --threads=16 --iterations=100
+done
+
+echo "./lab2a --threads=16 --iterations=1000"
+(>&2 echo "./lab2a --threads=16 --iterations=1000")
+for i in `seq 1 10`; do
+	./lab2a --threads=16 --iterations=1000
+done
+
+echo "./lab2a --threads=16 --iterations=10000"
+(>&2 echo "./lab2a --threads=16 --iterations=10000")
+for i in `seq 1 10`; do
+	./lab2a --threads=16 --iterations=10000
+done
+echo "./lab2a --threads=32 --iterations=10"
+(>&2 echo "./lab2a --threads=32 --iterations=10")
+for i in `seq 1 10`; do
+	./lab2a --threads=32 --iterations=10
+done
+
+echo "./lab2a --threads=32 --iterations=100"
+(>&2 echo "./lab2a --threads=32 --iterations=100")
+for i in `seq 1 10`; do
+	./lab2a --threads=32 --iterations=100
+done
+
+echo "./lab2a --threads=32 --iterations=1000"
+(>&2 echo "./lab2a --threads=32 --iterations=1000")
+for i in `seq 1 10`; do
+	./lab2a --threads=32 --iterations=1000
+done
+
+echo "./lab2a --threads=32 --iterations=10000"
+(>&2 echo "./lab2a --threads=32 --iterations=10000")
+for i in `seq 1 10`; do
+	./lab2a --threads=32 --iterations=10000
+done
