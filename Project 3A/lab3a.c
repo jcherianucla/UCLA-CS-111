@@ -197,9 +197,9 @@ void parseBitmap(){
 			for(k = 1; k <= 8; k++){
 				int value = buf8 & mask;
 				if(value == 0){
-					dprintf(groupFd, "%x,", group[i].blockBitmapBlock);
-					dprintf(groupFd, "%d", j * 8 + k + (i * super->blocksPerGroup));
-					dprintf(groupFd, "\n");
+					dprintf(bitmapFd, "%x,", group[i].blockBitmapBlock);
+					dprintf(bitmapFd, "%d", j * 8 + k + (i * super->blocksPerGroup));
+					dprintf(bitmapFd, "\n");
 				}
 				mask = mask << 1;
 			}
@@ -217,9 +217,9 @@ void parseBitmap(){
 			for(k = 1; k <= 8; k++){
 				int value = buf8 & mask;
 				if(value == 0){
-					dprintf(groupFd, "%x,", group[i].inodeBitmapBlock);
-					dprintf(groupFd, "%d", j * 8 + k + (i * super->inodesPerGroup));
-					dprintf(groupFd, "\n");
+					dprintf(bitmapFd, "%x,", group[i].inodeBitmapBlock);
+					dprintf(bitmapFd, "%d", j * 8 + k + (i * super->inodesPerGroup));
+					dprintf(bitmapFd, "\n");
 				}
 				mask = mask << 1;
 			}
